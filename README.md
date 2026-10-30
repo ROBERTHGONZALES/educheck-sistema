@@ -1,25 +1,58 @@
-# EduCheck — Parte 1: Backend (Django + DRF)
+# EduCheck — Sistema de asistencia escolar
 
-API REST del sistema de asistencia escolar EduCheck. Esta parte contiene **solo el servidor**:
-modelos, endpoints, permisos por colegio, generación de PDF/XLSX, alertas de ausencias e
-importación de estudiantes desde Excel.
+Aplicación web para registrar y controlar la asistencia de estudiantes mediante **código QR
+o DNI**, con paneles separados para **director** y **auxiliar**, reportes en **PDF/XLSX**,
+**alertas de ausencias consecutivas** y aislamiento de datos por colegio.
 
-> Proyecto dividido en 3 repositorios:
-> 1. **Backend Django** — este repositorio
-> 2. Frontend React — https://github.com/ROBERTHGONZALES/educheck-frontend
-> 3. Documentación y despliegue — https://github.com/ROBERTHGONZALES/educheck-documentacion
+El repositorio reúne las 3 partes del proyecto en una sola estructura ejecutable:
+
+| Parte | Contenido | Carpeta |
+| --- | --- | --- |
+| 1 | Backend Django + DRF (API REST) | `backend/` |
+| 2 | Frontend React + Vite | raíz (`src/`, `packages/`, `public/`) |
+| 3 | Documentación, build y despliegue | `deploy/`, `dist/`, README |
 
 ## Tecnologías
 
-- Python 3.13
-- Django 5.2 + Django REST Framework 3.16
-- MariaDB / MySQL (utf8mb4)
-- WeasyPrint (PDF), openpyxl (XLSX), segno (QR), argon2-cffi (contraseñas)
-- pytest + pytest-django
+**Backend:** Python 3.13, Django 5.2, Django REST Framework 3.16, MariaDB/MySQL,
+WeasyPrint (PDF), openpyxl (XLSX), segno (QR), argon2-cffi (contraseñas), pytest.
+
+**Frontend:** React 19, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query.
+
+## Estructura
+
+```text
+.
+├── backend/                 API Django
+│   ├── core/                modelos, vistas, serializers, permisos, reportes
+│   ├── educheck_project/    configuración (settings, urls, wsgi)
+│   ├── core/tests/          pruebas de alertas, auxiliares y cookies
+│   ├── tests/               pruebas de aislamiento entre colegios
+│   ├── sql/                 script de creación de la base de datos
+│   └── requirements*.txt
+├── src/                     interfaz React (páginas, componentes, hooks)
+├── packages/api-client-react/  cliente de la API
+├── public/                  imágenes y favicons
+├── dist/                    build del frontend listo para servir
+├── deploy/                  arranque local, configuración MariaDB y datos demo
+├── index.html
+├── package.json
+├── vite.config.ts
+└── README-LOCAL-WINDOWS.md  guía de instalación en Windows
+```
 
 ## Puesta en marcha
 
+### 1. Base de datos
+
 ```bash
+mysql -u root -p < backend/sql/create_database.sql
+```
+
+### 2. Backend
+
+```bash
+cd backend
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -28,70 +61,91 @@ python manage.py migrate
 python manage.py runserver 127.0.0.1:8000
 ```
 
-La base de datos debe existir antes de migrar:
+### 3. Frontend
 
 ```bash
-mysql -u root -p < sql/create_database.sql
+npm install
+npm run dev
 ```
 
-## Variables de entorno
+Abre `http://127.0.0.1:5173`. Vite reenvía `/api/*` a `http://127.0.0.1:8000`.
 
-| Variable | Descripción |
-| --- | --- |
-| `MARIADB_URL` | `mysql://usuario:clave@host:puerto/educheck?charset=utf8mb4` |
-| `DJANGO_SECRET_KEY` | Clave larga y aleatoria |
-| `DJANGO_DEBUG` | `1` en desarrollo, `0` en producción |
-| `DJANGO_ALLOWED_HOSTS` | Hosts permitidos, separados por coma |
-| `EDUCHECK_ALLOWED_ORIGINS` | Orígenes del frontend (CORS) |
-| `CSRF_TRUSTED_ORIGINS` | Orígenes de confianza para CSRF |
+### 4. Arranque automático (Linux/macOS)
 
-No subas tu archivo `.env` al repositorio: ya está en `.gitignore`.
+```bash
+./deploy/educheck.sh start     # MariaDB + Django + Vite
+./deploy/educheck.sh status
+./deploy/educheck.sh stop
+```
 
-## Endpoints principales
+## Usuarios de demostración
+
+| Usuario | Contraseña | Rol |
+| --- | --- | --- |
+| `director` | `EduCheck2026!` | director |
+| `auxiliar` | `EduCheck2026!` | auxiliar |
+
+Los datos de ejemplo (colegio, grados, secciones y alumnos) se cargan con:
+
+```bash
+cd backend && source .venv/bin/activate
+python ../deploy/seed_demo.py
+```
+
+## Funcionalidades
+
+- **Autenticación** con sesión, cookie CSRF y roles director/auxiliar.
+- **Estudiantes**: alta, búsqueda, filtros, estado activo/inactivo, QR único.
+- **Asistencia**: escaneo por QR o DNI, turnos mañana/tarde, detección de duplicados.
+- **Reportes**: resumen por rango de fechas, exportación a PDF y XLSX.
+- **Alertas**: ausencias consecutivas configurables por grado o sección.
+- **Auxiliares**: creación, asignación de secciones, importación de estudiantes por Excel
+  y generación de carnés PDF.
+- **Multi-colegio**: cada cuenta solo ve los datos de su institución.
+
+## API
+
+Base: `/api/educheck/`. Endpoints principales:
 
 | Método | Ruta | Rol |
 | --- | --- | --- |
-| GET | `/api/educheck/auth/csrf` | público (inicializa cookie CSRF) |
-| POST | `/api/educheck/auth/login` | público |
-| GET | `/api/educheck/auth/session` | autenticado |
-| POST | `/api/educheck/auth/logout` | autenticado |
-| GET | `/api/educheck/director/dashboard` | director |
-| GET/POST | `/api/educheck/director/students` | director |
-| GET/POST | `/api/educheck/director/grades` | director |
-| POST | `/api/educheck/director/sections` | director |
-| DELETE | `/api/educheck/director/sections/{id}` | director |
-| GET/POST | `/api/educheck/director/assistants` | director |
-| PUT | `/api/educheck/director/assistants/{id}/sections` | director |
-| GET | `/api/educheck/director/alerts` | director |
-| GET | `/api/educheck/director/attendance` | director |
-| GET | `/api/educheck/director/reports/summary` | director |
-| GET | `/api/educheck/director/reports/export/pdf` | director |
-| GET | `/api/educheck/director/reports/export/xlsx` | director |
-| GET | `/api/educheck/assistant/sections` | auxiliar |
-| GET | `/api/educheck/assistant/sections/{id}/students` | auxiliar |
-| POST | `/api/educheck/assistant/attendance/scan` | auxiliar |
-| POST | `/api/educheck/assistant/students/import` | auxiliar |
-| GET | `/api/educheck/assistant/students/{id}/card.pdf` | auxiliar |
+| GET | `/auth/csrf` | público |
+| POST | `/auth/login` | público |
+| GET | `/auth/session` | autenticado |
+| POST | `/auth/logout` | autenticado |
+| GET | `/director/dashboard` | director |
+| GET/POST | `/director/students` | director |
+| GET/POST | `/director/grades` | director |
+| POST | `/director/sections` | director |
+| DELETE | `/director/sections/{id}` | director |
+| GET/POST | `/director/assistants` | director |
+| PUT | `/director/assistants/{id}/sections` | director |
+| GET | `/director/alerts` | director |
+| GET | `/director/attendance` | director |
+| GET | `/director/reports/summary` | director |
+| GET | `/director/reports/export/pdf` | director |
+| GET | `/director/reports/export/xlsx` | director |
+| GET | `/assistant/sections` | auxiliar |
+| GET | `/assistant/sections/{id}/students` | auxiliar |
+| POST | `/assistant/attendance/scan` | auxiliar |
+| POST | `/assistant/students/import` | auxiliar |
+| GET | `/assistant/students/{id}/card.pdf` | auxiliar |
 
-Formato de errores: `{"detail": "mensaje"}` o errores por campo
+Los errores se devuelven como `{"detail": "mensaje"}` o por campo
 `{"campo": ["mensaje"]}`.
 
 ## Tests
 
 ```bash
+cd backend
 pip install -r requirements-dev.txt
 pytest
 ```
 
-Los tests usan SQLite en memoria (`EDUCHECK_TEST_SQLITE=1`) para no tocar la base real.
+Los tests usan SQLite en memoria (`EDUCHECK_TEST_SQLITE=1`) y no tocan la base real.
 
-## Estructura
+## Documentación adicional
 
-```
-manage.py
-educheck_project/     configuración Django (settings, urls, wsgi)
-core/                 modelos, vistas, serializers, permisos, reportes
-core/tests/           pruebas de alertas, auxiliares y cookies
-tests/                pruebas de aislamiento entre colegios
-sql/create_database.sql
-```
+- `README-LOCAL-WINDOWS.md` — instalación paso a paso en Windows (incluye WeasyPrint/GTK).
+- `COMO-UNIR-LAS-PARTES.md` — cómo se compone el proyecto a partir de sus 3 partes.
+- `backend/README.md` — detalle del backend, variables de entorno y endpoints.

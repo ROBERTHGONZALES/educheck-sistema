@@ -13,11 +13,18 @@ venv/
 .pytest_cache/
 .coverage
 htmlcov/
-
-# Sistema
-.DS_Store
-Thumbs.db
-
-# Artefactos
 staticfiles/
 media/
+
+# Node / frontend
+node_modules/
+dist-ssr/
+*.local
+npm-debug.log*
+
+# Editores y sistema
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db

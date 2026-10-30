@@ -1,0 +1,20 @@
+# MariaDB local para EduCheck — copia este archivo como my.cnf y ajusta las rutas.
+[mysqld]
+port = 3306
+bind-address = 127.0.0.1
+datadir = /ruta/a/tu/carpeta/mysql-data
+socket = /ruta/a/tu/carpeta/mysql.sock
+pid-file = /ruta/a/tu/carpeta/mysqld.pid
+log-error = /ruta/a/tu/carpeta/logs/mysqld.log
+mysqlx = 0
+skip-name-resolve
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+default-storage-engine = INNODB
+log_bin_trust_function_creators = 1
+skip-log-bin
+innodb-buffer-pool-size = 256M
+
+[client]
+port = 3306
+socket = /ruta/a/tu/carpeta/mysql.sock

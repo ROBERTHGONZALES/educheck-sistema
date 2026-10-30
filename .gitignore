@@ -1,0 +1,23 @@
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Artefactos
+staticfiles/
+media/

@@ -1,0 +1,85 @@
+from django.urls import path
+
+from .views import (
+    AttendancePdfExportView,
+    AttendanceQueryView,
+    AttendanceReportView,
+    AttendanceScanView,
+    AssistantSectionListView,
+    AssistantSectionStudentsView,
+    AssistantStudentCardsPdfView,
+    AssistantStudentImportView,
+    AttendanceXlsxExportView,
+    CsrfTokenView,
+    DirectorAlertsView,
+    DirectorAssistantListCreateView,
+    DirectorAssistantSectionsView,
+    GradeListCreateView,
+    LoginView,
+    LogoutView,
+    SectionCreateView,
+    SectionDeleteView,
+    SessionView,
+    StudentListCreateView,
+    DirectorDashboardView,
+)
+
+urlpatterns = [
+    path("auth/csrf", CsrfTokenView.as_view(), name="auth-csrf"),
+    path("auth/login", LoginView.as_view(), name="auth-login"),
+    path("auth/session", SessionView.as_view(), name="auth-session"),
+    path("auth/logout", LogoutView.as_view(), name="auth-logout"),
+    path("director/dashboard", DirectorDashboardView.as_view(), name="director-dashboard"),
+    path("director/alerts", DirectorAlertsView.as_view(), name="director-alerts"),
+    path(
+        "director/assistants",
+        DirectorAssistantListCreateView.as_view(),
+        name="director-assistants",
+    ),
+    path(
+        "director/assistants/<int:assistant_id>/sections",
+        DirectorAssistantSectionsView.as_view(),
+        name="director-assistant-sections",
+    ),
+    path("director/students", StudentListCreateView.as_view(), name="director-students"),
+    path("director/grades", GradeListCreateView.as_view(), name="director-grades"),
+    path("director/sections", SectionCreateView.as_view(), name="director-sections"),
+    path(
+        "director/sections/<int:section_id>",
+        SectionDeleteView.as_view(),
+        name="director-section-delete",
+    ),
+    path("assistant/sections", AssistantSectionListView.as_view(), name="assistant-sections"),
+    path(
+        "assistant/sections/<int:section_id>/students",
+        AssistantSectionStudentsView.as_view(),
+        name="assistant-section-students",
+    ),
+    path(
+        "assistant/sections/<int:section_id>/students/import",
+        AssistantStudentImportView.as_view(),
+        name="assistant-student-import",
+    ),
+    path(
+        "assistant/sections/<int:section_id>/cards.pdf",
+        AssistantStudentCardsPdfView.as_view(),
+        name="assistant-student-cards-pdf",
+    ),
+    path("attendance/scan", AttendanceScanView.as_view(), name="attendance-scan"),
+    path("director/attendance", AttendanceQueryView.as_view(), name="director-attendance"),
+    path(
+        "director/reports/summary",
+        AttendanceReportView.as_view(),
+        name="attendance-report",
+    ),
+    path(
+        "director/reports/export/pdf",
+        AttendancePdfExportView.as_view(),
+        name="attendance-export-pdf",
+    ),
+    path(
+        "director/reports/export/xlsx",
+        AttendanceXlsxExportView.as_view(),
+        name="attendance-export-xlsx",
+    ),
+]

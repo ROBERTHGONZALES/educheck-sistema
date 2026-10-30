@@ -4,10 +4,10 @@ API REST del sistema de asistencia escolar EduCheck. Esta parte contiene **solo 
 modelos, endpoints, permisos por colegio, generación de PDF/XLSX, alertas de ausencias e
 importación de estudiantes desde Excel.
 
-> Proyecto dividido en 3 partes:
-> 1. **Backend Django** (este repositorio)
-> 2. Frontend React (`parte-2-frontend-react`)
-> 3. Documentación y despliegue (`parte-3-documentacion-despliegue`)
+> Proyecto dividido en 3 repositorios:
+> 1. **Backend Django** — este repositorio
+> 2. Frontend React — https://github.com/ROBERTHGONZALES/educheck-frontend
+> 3. Documentación y despliegue — https://github.com/ROBERTHGONZALES/educheck-documentacion
 
 ## Tecnologías
 
